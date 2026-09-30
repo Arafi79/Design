@@ -87,6 +87,7 @@ small{opacity:.7}
   <button id="clr">مسح الكل</button>
   <button id="licb">ℹ️ ترخيص الرموز</button>
   <button id="bwb">◐ رمادي وأسود (للطباعة)</button>
+  <label>🧲 <input type="checkbox" id="sn"> شبكة <select id="sg" style="font:inherit"><option>1</option><option>2</option><option selected>5</option><option>10</option></select> px</label>
   <label id="bwl" class="hide">التباين <input type="range" id="bwt" min="80" max="200" value="120"></label>
 </div>
 <div class="bar hide" id="pal"><button id="libb">🎨 الرموز ▾</button></div>
@@ -104,7 +105,7 @@ small{opacity:.7}
     <label id="cfl"><span><input type="checkbox" id="cf"> قلب أفقي</span></label>
     <label id="cvl"><span><input type="checkbox" id="cv"> قلب عمودي</span></label>
     <label>اللون <select id="cm"><option value="color">ملون (افتراضي)</option><option value="gray">رمادي</option><option value="bw">أبيض وأسود</option></select></label>
-    <span style="display:flex;gap:6px"><button id="dup">⧉ نسخ</button><button id="del">🗑 حذف</button></span>
+    <span style="display:flex;gap:6px;flex-wrap:wrap"><button id="dup" title="في نفس المكان تمامًا">⧉ نسخ</button><button id="duph">⇆ نسخ أفقي</button><button id="dupv">⇅ نسخ عمودي</button><button id="del">🗑 حذف</button></span>
   </span>
   <span id="shp" class="grp"><b>خصائص الشكل</b>
     <label id="pfr">الملء <input type="color" id="pf" value="#3b82f6"> <input type="checkbox" id="pn"> بلا ملء</label>
@@ -229,7 +230,7 @@ function mode(on){
   stage.className=on?'edit':'view';
   ['pal','ctl','lyr','back'].forEach(k=>$(k).classList.toggle('hide',!on));$('app').classList.toggle('v',!on);
   $('ins').classList.toggle('hide',on);
-  $('hint').textContent=on?'اسحب العنصر للتحريك (مع Shift: أفقيًا أو عموديًا فقط)، الدائرة العلوية للتدوير (مع Shift: بخطوات 15°)، والسفلية للتكبير. اضغط الفراغ لإلغاء التحديد. ما يخرج عن الورقة لن يُصدَّر.':'وضع المعاينة: اضغط «العودة للتعديل» لإظهار الأدوات.';
+  $('hint').textContent=on?'اسحب العنصر للتحريك (مع Shift: أفقيًا أو عموديًا فقط)، الدائرة العلوية للتدوير (مع Shift: بخطوات 15°)، والسفلية للتكبير. الأسهم لتحريك العنصر بدقة (Shift = 10 بكسل). اضغط الفراغ لإلغاء التحديد. ما يخرج عن الورقة لن يُصدَّر.':'وضع المعاينة: اضغط «العودة للتعديل» لإظهار الأدوات.';
   syncLib();fit();render();
 }
 $('ins').onclick=()=>mode(true);$('back').onclick=()=>mode(false);
@@ -258,7 +259,7 @@ function render(){
     r.innerHTML=`<img src="${srcOf(o)}" alt=""><i>${o.type==='text'?esc(o.text.replace(/\n/g,' ').slice(0,16)):o.label} #${o.id}</i>`;
     r.onclick=()=>{sel=o.id;render()};L.appendChild(r);
   });
-  ['up','dn','top','bot','dup','del'].forEach(k=>$(k).disabled=!sel);
+  ['up','dn','top','bot','dup','duph','dupv','del'].forEach(k=>$(k).disabled=!sel);
   if(sel!==lastSel){lastSel=sel;syncProps()}
   syncSize();
   saveL();
@@ -269,7 +270,7 @@ function drag(ev,o,m){
   const sx=ev.clientX,sy=ev.clientY,p0=P(o),sz0=o.size,orr=o.r,br=stage.getBoundingClientRect(),ccx=br.left+p0.cx*S,ccy=br.top+p0.cy*S;
   const mv=e=>{
     const dx=(e.clientX-sx)/S,dy=(e.clientY-sy)/S;
-    if(m==='move'){let mx=dx,my=dy;if(e.shiftKey){if(Math.abs(dx)>=Math.abs(dy))my=0;else mx=0}o.x=(p0.cx+mx)/W;o.y=(p0.cy+my)/W}
+    if(m==='move'){let mx=dx,my=dy;if(e.shiftKey){if(Math.abs(dx)>=Math.abs(dy))my=0;else mx=0}o.x=(p0.cx+mx)/W;o.y=(p0.cy+my)/W;if(snapOn)snapO(o)}
     else if(m==='rot'){let a=Math.atan2(e.clientY-ccy,e.clientX-ccx)+Math.PI/2;if(e.shiftKey){const st=Math.PI/12;a=Math.round(a/st)*st}o.r=a}
     else{const c=Math.cos(orr),s=Math.sin(orr),lx=dx*c+dy*s,ly=-dx*s+dy*c;
       if(o.type==='text'&&(m==='e'||m==='size')){const nw=Math.max(30,p0.w+lx);if(m==='size')o.size=Math.max(6,sz0*nw/p0.w);o.s=nw/W;const p1=P(o),dw=p1.w-p0.w,dh=p1.h-p0.h;o.x=(p0.cx+(dw/2)*c-(dh/2)*s)/W;o.y=(p0.cy+(dw/2)*s+(dh/2)*c)/W}
@@ -288,9 +289,12 @@ function mvIdx(t){const i=cur();if(i<0)return;const[o]=items.splice(i,1);items.s
 $('up').onclick=()=>mvIdx(cur()+1);$('dn').onclick=()=>mvIdx(cur()-1);
 $('top').onclick=()=>mvIdx(items.length);$('bot').onclick=()=>mvIdx(0);
 $('del').onclick=()=>{items=items.filter(o=>o.id!==sel);sel=null;render()};
-$('dup').onclick=()=>{const o=items[cur()];if(o){const c={...o,id:uid++,x:o.x+.03,y:o.y+.02};items.push(c);sel=c.id;render()}};
+/* copy: exact same spot (dup), or placed beside / below with a 10px gap, keeping the other axis identical */
+function dupAt(mode){const o=items[cur()];if(!o)return;const p=P(o),cs=Math.abs(Math.cos(o.r)),sn=Math.abs(Math.sin(o.r)),bbw=p.w*cs+p.h*sn,bbh=p.w*sn+p.h*cs,gap=10;
+  const c={...o,id:uid++,x:o.x+(mode==='h'?bbw+gap:0)/W,y:o.y+(mode==='v'?bbh+gap:0)/W};items.push(c);sel=c.id;render()}
+$('dup').onclick=()=>dupAt('');$('duph').onclick=()=>dupAt('h');$('dupv').onclick=()=>dupAt('v');
 $('clr').onclick=()=>{if(!items.length||confirm('إزالة كل عناصر الطبقة؟')){items=[];sel=null;render()}};
-addEventListener('keydown',e=>{if(e.key==='Delete'&&sel&&editing)$('del').click()});
+addEventListener('keydown',e=>{if(e.key==='Delete'&&sel&&editing&&!/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))$('del').click()});
 
 $('file').onchange=e=>{
   [...e.target.files].forEach(f=>{const fr=new FileReader();
@@ -370,6 +374,16 @@ drawRec();
 $('lictxt').textContent=LICTXT;
 ['licb','licf'].forEach(id=>$(id).onclick=e=>{e.preventDefault();$('lic').classList.remove('hide')});
 $('licx').onclick=()=>$('lic').classList.add('hide');$('lic').onclick=e=>{if(e.target===$('lic'))$('lic').classList.add('hide')};
+/* ---------- Grid snap (top-left corner of the element) + arrow-key nudging ---------- */
+let snapOn=false;
+const snapO=o=>{const p=P(o),g=+$('sg').value;o.x=(Math.round((p.cx-p.w/2)/g)*g+p.w/2)/W;o.y=(Math.round((p.cy-p.h/2)/g)*g+p.h/2)/W};
+function saveSnap(){snapOn=$('sn').checked;try{localStorage.setItem('ws-snap-v1',JSON.stringify({on:snapOn,g:$('sg').value}))}catch(e){}}
+try{const d=JSON.parse(localStorage.getItem('ws-snap-v1')||'null');if(d){$('sn').checked=!!d.on;if(['1','2','5','10'].includes(d.g))$('sg').value=d.g}}catch(e){}
+$('sn').onchange=$('sg').onchange=saveSnap;saveSnap();
+addEventListener('keydown',e=>{
+  const k={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key],o=curO();
+  if(!k||!o||!editing||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;
+  e.preventDefault();const st=e.shiftKey?10:snapOn?+$('sg').value:1;o.x+=k[0]*st/W;o.y+=k[1]*st/W;render()});
 loadL();fit();mode(true);
 </script>
 </body>
