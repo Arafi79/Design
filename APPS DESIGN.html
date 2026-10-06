@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#2563eb">
+<title>مساحة تصميم A4</title>
+<link rel="stylesheet" href="APPS DESIGN.css">
+
+</head>
+<body>
+<div id="topc">
+  <div class="bar" id="row1">
+    <button class="p hide" id="ins">✏️ تعديل</button><button class="p" id="back">👁 معاينة</button>
+    <span class="sep"></span>
+    <button id="sv">💾 حفظ</button><label class="b">📂 فتح<input id="openf" type="file" accept="application/json,.json" hidden></label><button id="exp">⬇ تصدير PNG</button>
+    <span class="sep"></span>
+    <label class="b">A4 <select id="orientation"><option value="portrait">عمودي</option><option value="landscape">أفقي</option></select></label>
+    <label class="b" title="إظهار موضع المؤشر على المسطرتين"><input type="checkbox" id="mouseCoords"> موضع المؤشر</label>
+    <span class="sep"></span>
+    <label>🧲 <input type="checkbox" id="sn"> شبكة <select id="sg"><option>1</option><option>2</option><option selected>5</option><option>10</option></select> px</label>
+    <button id="bwb">◐ طباعة</button><label id="bwl" class="hide">التباين <input type="range" id="bwt" min="80" max="200" value="120"></label>
+    <span class="sep"></span>
+    <button id="fsb" title="ملء الشاشة">⛶</button><button id="licb" title="ترخيص الرموز والخطوط">ℹ️</button><button id="hbtn" title="مساعدة">❔</button>
+  </div>
+  <div class="bar hide" id="pal">
+    <label class="b" id="upl">📁 صورة<input id="file" type="file" accept="image/*" multiple hidden></label>
+    <button id="shb" title="إدراج شكل">🔷 الأشكال ▾</button>
+    <button id="libb">🎨 الرموز ▾</button>
+    <span class="sep"></span><span id="rec" class="recs hide"></span>
+  </div>
+</div>
+<div id="shl" class="hide"></div>
+<div id="hlp" class="hide"><small id="hint"></small><br><a href="#" id="licf">حقوق وترخيص الرموز والخطوط</a></div>
+<div class="bar hide" id="lib"><div class="fh"><b id="libt">إدراج رمز</b><button id="libx">✕ إغلاق</button></div></div>
+<div id="body">
+  <aside id="rr" class="rail hide">
+    <button id="rhist" class="rb" title="تراجع / إعادة"><b>↶</b><small>تراجع</small></button>
+    <div class="rsep"></div>
+    <button id="rsize" class="rb" title="الحجم والزاوية"><b>📐</b><small>الحجم</small></button>
+    <button id="rlook" class="rb" title="الشفافية والقلب واللون"><b>🎚</b><small>المظهر</small></button>
+    <button id="ralign" class="rb" title="محاذاة"><b>⇔</b><small>محاذاة</small></button>
+    <button id="rcopy" class="rb" title="نسخ"><b>⧉</b><small>نسخ</small></button>
+    <button id="rmat" class="rb" title="إدراج مصفوفة انطلاقًا من التحديد"><b>▦</b><small>مصفوفة</small></button>
+    <button id="rspl" class="rb" title="تقسيم التحديد إلى أجزاء متساوية"><b>⊞</b><small>تقسيم</small></button>
+    <button id="rrep" class="rb" title="استبدال التحديد برمز أو شكل آخر"><b>🔁</b><small>استبدال</small></button>
+    <button id="rshape" class="rb hide" title="خصائص الشكل"><b>🔷</b><small>الشكل</small></button>
+    <div class="rsep"></div>
+    <button id="del" class="rb" title="حذف"><b>🗑</b><small>حذف</small></button>
+  </aside>
+  <div id="vp"><div id="rulerDock"><canvas id="hruler" aria-label="المسطرة الأفقية"></canvas><canvas id="vruler" aria-label="المسطرة العمودية"></canvas><div id="rulerCorner"></div><div id="hMarker" class="hide"></div><div id="vMarker" class="hide"></div></div>
+    <div id="wrap"><div id="stage" class="view"><div id="ws"></div><div id="ov"></div><div id="mouseCross" class="hide"><div id="mouseV"></div><div id="mouseH"></div></div></div>
+    <div id="grip">⇕ اسحب لتغيير الارتفاع ضمن A4 — العرض <b id="wcm"></b>، الارتفاع <b id="hcm"></b></div></div></div>
+  <aside id="lr" class="rail hide">
+    <button id="ltog" class="rb" title="قائمة الصفحة"><b>☰</b></button>
+    <button id="llay" class="rb" title="الطبقات والترتيب"><b>🗂</b><small>الطبقات</small></button>
+    <button id="lclr" class="rb" title="تفريغ الصفحة"><b>🧹</b><small>تفريغ</small></button>
+    <button id="lnew" class="rb" title="صفحة جديدة"><b>📄</b><small>جديدة</small></button>
+    <div class="rsep"></div>
+    <button id="zin" class="rb" title="تكبير"><b>＋</b></button><button id="zout" class="rb" title="تصغير"><b>－</b></button><button id="zfit" class="rb" title="ملاءمة العرض"><b>⤢</b></button>
+    <small id="zp"></small>
+  </aside>
+</div>
+<div id="fly" class="hide"><div class="fh"><b id="ft"></b><button id="fx">✕</button></div>
+  <section id="f-copy" class="hide"><small>ينسخ التحديد كله. ما يُحدَّد بعد النسخ يتبع الزر التالي:</small>
+    <button id="ckeep" class="tg" title="بدّل بين تحديد النسخ الجديدة فقط، وتحديد الأصل مع النسخ">التحديد بعد النسخ: الجديد فقط</button>
+    <div class="dpad"><button id="dupul" title="نسخ للأعلى يسارًا">⇖</button><button id="dupu" title="نسخ للأعلى">⇡</button><button id="dupur" title="نسخ للأعلى يمينًا">⇗</button><button id="dupl" title="نسخ لليسار">⇠</button><button id="dup" title="في نفس المكان">⧉</button><button id="dupr" title="نسخ لليمين">⇢</button><button id="dupdl" title="نسخ للأسفل يسارًا">⇙</button><button id="dupd" title="نسخ للأسفل">⇣</button><button id="dupdr" title="نسخ للأسفل يمينًا">⇘</button></div>
+    <label>المسافة بين النسخ (px) <input type="number" id="cg" value="10" step="1" min="-3000" max="3000"></label>
+    <small>0 = ملاصق · موجب = مسافة · سالب = تداخل</small>
+    <label><span><input type="checkbox" id="c45" checked> القطري بزاوية 45° حقيقية</span></label>
+    <small>إن أُلغيت: تُزاح النسخة القطرية بعرض التحديد وارتفاعه (تلاصق الزوايا في مصفوفة)</small></section>
+  <section id="f-align" class="hide">
+    <div class="g3"><button id="al" title="إلى اليسار">⇤</button><button id="at" title="إلى الأعلى">⤒</button><button id="ar" title="إلى اليمين">⇥</button><button id="ach" title="توسيط أفقي">⇔</button><button id="acv" title="توسيط عمودي">⇕</button><button id="ab" title="إلى الأسفل">⤓</button></div>
+    <label>بالنسبة إلى <select id="ap"><option value="sel">التحديد</option><option value="page">الصفحة</option></select></label></section>
+  <section id="f-hist" class="hide"><button id="undo" disabled>↶ تراجع <small id="uc"></small></button><button id="redo" disabled>↷ إعادة <small id="rc"></small></button><small>حتى 10 خطوات · Ctrl+Z / Ctrl+Y</small></section>
+  <section id="f-layers" class="hide"><div class="row4"><button id="sall" class="tg" title="تحديد كل العناصر الظاهرة وغير المقفلة؛ يبقى مضغوطًا ما دام كلها محددة">☑ تحديد الكل</button><button id="grpb" class="tg" disabled title="تجميع / فك تجميع التحديد المتعدد (أو نقر مزدوج على التحديد)">🔗 تجميع</button><button id="flat" disabled title="تحويل المحدد إلى صورة واحدة">🧱 تسطيح</button></div><div class="row4"><button id="up" title="للأمام">⬆ للأمام</button><button id="dn" title="للخلف">⬇ للخلف</button><button id="top" title="إلى الأعلى">⤒ أعلى</button><button id="bot" title="إلى الأسفل">⤓ أسفل</button></div><div id="lay"></div></section>
+</div>
+<div id="mx" class="modal hide"><div class="sheet">
+  <div class="fh"><b>إدراج مصفوفة من التحديد</b><button id="mxx">✕</button></div>
+  <div class="mxg"><div class="mxc">
+    <label>الاتجاه الأول <select id="md1"><option value="r">يمين</option><option value="l">يسار</option><option value="d">أسفل</option><option value="u">أعلى</option></select></label>
+    <label>الاتجاه الثاني (الصف التالي) <select id="md2"></select></label>
+    <div><small>العدد: في الصف × الصفوف = الكلي</small><div class="mxn"><input type="number" id="mn1" min="1" max="200" value="4"> × <input type="number" id="mn2" min="1" max="200" value="3"> = <input type="number" id="mt" min="1"></div><small id="mrange"></small></div>
+    <label id="mal">محاذاة الصف الأخير <select id="mal2"></select></label>
+    <label>مسافة أفقية (px) <input type="number" id="mgh" value="10" min="-3000" max="3000"></label>
+    <label>مسافة رأسية (px) <input type="number" id="mgv" value="10" min="-3000" max="3000"></label>
+  </div><div><canvas id="mpv" width="200" height="130"></canvas><small id="mwarn"></small></div></div>
+  <small id="mcap">تنبيه: الحد الأقصى 20 خلية إذا كان التحديد يتضمن صورة (لحماية الأداء)، و100 خلية للرموز والأشكال والنصوص، وبحد 400 عنصر إجمالًا. العنصر الأصلي هو الخلية الأولى، وتُحدَّد المصفوفة كلها بعد الإدراج. المسافات هنا لا تغيّر مسافة النسخ.</small>
+  <div class="row4"><button class="p" id="mok">إدراج المصفوفة</button><button id="mcx">إلغاء</button></div></div></div>
+<div id="sub" class="hide">
+<div class="subg" id="s-size" data-n="size"><small id="scn"></small>
+<div class="srow"><button type="button" class="sbtn">العرض</button><div class="sext hide"><input type="number" id="cw" min="5" max="3000"></div></div>
+<div class="srow" id="rwch"><button type="button" class="sbtn">الطول</button><div class="sext hide"><input type="number" id="ch" min="5" max="6000"></div></div>
+<div class="srow" id="rwcl"><button type="button" class="sbtn tgl" data-t="cl">التناسب</button><input type="checkbox" id="cl" hidden checked></div>
+<div class="srow"><button type="button" class="sbtn">الزاوية</button><div class="sext hide"><input type="number" id="cr" min="-360" max="360" step="1" value="0"></div></div>
+</div>
+<div class="subg" id="s-look" data-n="look">
+<div class="srow"><button type="button" class="sbtn">الشفافية</button><div class="sext hide"><input type="range" id="co" min="10" max="100" value="100"></div></div>
+<div class="srow" id="cfl"><button type="button" class="sbtn tgl" data-t="cf">قلب أفقي</button><input type="checkbox" id="cf" hidden></div>
+<div class="srow" id="cvl"><button type="button" class="sbtn tgl" data-t="cv">قلب عمودي</button><input type="checkbox" id="cv" hidden></div>
+<div class="srow"><button type="button" class="sbtn">اللون</button><div class="sext hide"><select id="cm"><option value="" hidden>— مختلط —</option><option value="color">ملون (افتراضي)</option><option value="gray">رمادي</option><option value="bw">أبيض وأسود</option></select></div></div>
+</div>
+<div class="subg" id="shp" data-n="shape"><small id="scs"></small>
+<div id="pfr" class="rgrp"><label class="sbtn">لون الملء <input type="color" id="pf" value="#3b82f6"></label><div class="srow"><button type="button" class="sbtn tgl" data-t="pn">بلا ملء</button><input type="checkbox" id="pn" hidden></div></div>
+<label class="sbtn">لون الحدود <input type="color" id="ps" value="#1e3a8a"></label>
+<div class="srow"><button type="button" class="sbtn">سمك الحدود</button><div class="sext hide"><input type="range" id="pw" min="0" max="30" value="3"></div></div>
+<div class="srow" id="prw"><button type="button" class="sbtn">تدوير الزوايا</button><div class="sext hide"><input type="range" id="pr" min="0" max="100" value="0"></div></div>
+<div class="srow"><button type="button" class="sbtn">التأثير</button><div class="sext hide"><select id="pef"><option value="" hidden>— مختلط —</option><option value="none">بلا تأثير</option><option value="hand">رسم يدوي</option><option value="dashed">خط متقطع</option><option value="dotted">نقاط</option><option value="double">خط مزدوج</option><option value="stitch">خياطة</option><option value="stitchs">خياطة ناعمة</option><option value="wavy">متموج</option></select></div></div>
+<div class="srow"><button type="button" class="sbtn">شدة التأثير</button><div class="sext hide"><input type="number" id="pam" min="1" max="100" value="8"></div></div>
+<div class="srow" id="rwly"><button type="button" class="sbtn">تعدد الخطوط</button><div class="sext hide"><input type="number" id="play" min="1" max="4" value="2"></div></div>
+<div class="srow" id="rwsd"><button type="button" class="sbtn" id="pseed">🔄 إعادة التشكيل</button></div>
+</div>
+</div>
+<div id="textEditor" class="modal hide"><div class="sheet text-sheet">
+  <div class="fh"><b>تحرير النص</b><button id="txClose">تم</button></div>
+  <div class="text-workspace">
+    <div class="text-input-pane"><label for="tx">النص</label><textarea id="tx" rows="12" dir="auto" aria-label="النص"></textarea></div>
+    <div class="text-preview-pane"><b>معاينة</b><div id="textPreview" aria-live="polite"></div></div>
+  </div>
+  <div class="text-tools">
+    <label>الخط <select id="tf"><option value="" hidden>— مختلط —</option><option value="system-ui">الافتراضي</option><optgroup label="عربية تدعم التشكيل (مضمّنة)"><option value="'Amiri'">أميري — Amiri</option><option value="'Scheherazade New'">شهرزاد — Scheherazade New</option><option value="'Noto Naskh Arabic'">نوتو نسخ — Noto Naskh Arabic</option><option value="'Markazi Text'">مركزي — Markazi Text</option></optgroup><option value="Arial">Arial</option><option value="Tahoma">Tahoma</option><option value="Georgia">Georgia</option><option value="'Times New Roman'">Times New Roman</option><option value="'Courier New'">Courier New</option></select></label>
+    <label>الحجم <input type="range" id="tz" min="10" max="200" value="40"></label>
+    <label>لون المحدد / الكل <input type="color" id="tc" value="#111827" title="يُلوّن التحديد، أو النص كله عند عدم وجود تحديد"></label>
+    <button type="button" class="text-toggle tgl" data-t="tb">عريض</button><input type="checkbox" id="tb" hidden>
+    <button type="button" class="text-toggle tgl" data-t="ti">مائل</button><input type="checkbox" id="ti" hidden>
+    <label>المحاذاة <select id="ta"><option value="" hidden>— مختلط —</option><option value="right">يمين</option><option value="center">وسط</option><option value="left">يسار</option></select></label>
+  </div>
+  <details class="text-advanced"><summary>إطار النص</summary><div class="text-tools">
+    <label>سمك الإطار <input type="number" id="xw" min="0" max="60" value="0"></label>
+    <label>لون الإطار <input type="color" id="xc" value="#000000"></label>
+    <label>تدوير الإطار <input type="number" id="xr" min="0" max="500" value="0"></label>
+    <label>تأثير الإطار <select id="xef"><option value="" hidden>— مختلط —</option><option value="none">بلا تأثير</option><option value="hand">رسم يدوي</option><option value="dashed">خط متقطع</option><option value="dotted">نقاط</option><option value="double">خط مزدوج</option><option value="stitch">خياطة</option><option value="stitchs">خياطة ناعمة</option><option value="wavy">متموج</option></select></label>
+    <label>شدة التأثير <input type="number" id="xam" min="1" max="100" value="8"></label>
+    <label id="rwxl" class="hide">تعدد الخطوط <input type="number" id="xlay" min="1" max="4" value="2"></label>
+    <div id="rwxs" class="hide"><button type="button" id="xseed">🔄 إعادة التشكيل</button></div>
+  </div></details>
+</div></div>
+<div id="pageConfirm" class="modal hide"><div class="sheet confirm-sheet">
+  <div class="fh"><b id="pageConfirmTitle"></b><button id="confirmCancelTop" title="إلغاء">✕</button></div>
+  <p id="pageConfirmMessage"></p>
+  <div class="row4"><button class="p" id="confirmSave"></button><button id="confirmIgnore"></button><button id="confirmCancel">إلغاء</button></div>
+</div></div>
+<div id="sp" class="modal hide"><div class="sheet">
+  <div class="fh"><b>تقسيم التحديد إلى أجزاء</b><button id="spx">✕</button></div>
+  <div class="mxg"><div class="mxc">
+    <div><small>الأعمدة × الأسطر = القطع</small><div class="mxn"><input type="number" id="sn1" min="1" max="50" value="2"> × <input type="number" id="sn2" min="1" max="50" value="2"> = <b id="stot">4</b></div></div>
+    <label>المسافة بين القطع (px) <input type="number" id="spg" value="8" min="0" max="500"></label>
+    <label><span><input type="checkbox" id="sgp"> تجميع الناتج (مجموعة لكل عنصر)</span></label>
+  </div><div><canvas id="spv" width="200" height="130"></canvas><small id="spw"></small></div></div>
+  <small>الأشكال القابلة للتمدد (مستطيل، بيضاوي، مثلث، معين، سهم، خط) تملأ الخلايا بالمسافة المحددة. الصور والرموز والنجمة والسداسي تحفظ نسبتها الأصلية (يُعتمد الجانب الأصغر للخلية) وتتوزع إلى الزوايا بتباعد تلقائي لا يقل عن المسافة. النصوص مستثناة. الحد الأقصى: 20 قطعة للصورة الواحدة، و100 لغيرها، و400 في المجموع. المعاينة للعنصر الأول.</small>
+  <div class="row4"><button class="p" id="spok">تقسيم</button><button id="spcx">إلغاء</button></div></div></div>
+<div id="prec" class="hide"><div class="pinfo"><b id="pnm"></b><span id="pvn"></span></div><div id="ptrack"><small id="pvl"></small><div id="pfill"></div><div id="pmid"></div><div id="pknob"></div><small id="pvh"></small></div></div>
+<div id="toast" class="hide"><span id="tmsg"></span><button id="tund">تراجع</button></div>
+<div id="gal" class="modal hide"><div class="sheet">
+  <div class="grp"><b id="gt"></b><button id="gx">✕ إغلاق</button></div>
+  <div class="grp"><input id="gs" type="search" placeholder="🔍 بحث بالاسم..."><span id="gc" class="grp"></span></div>
+  <div class="gr" id="gg"></div></div></div>
+<div id="lic" class="modal hide"><div class="sheet">
+  <div class="grp"><b>حقوق وترخيص الرموز</b><button id="licx">✕ إغلاق</button></div>
+  <p><b>المكتبة:</b> Noto Emoji من Google (رسوم SVG متجهة)، النسخة المستخدمة v2.042.<br><b>المستودع:</b> <a href="https://github.com/googlefonts/noto-emoji" target="_blank" rel="noopener">github.com/googlefonts/noto-emoji</a><br><b>الرخصة:</b> Apache License 2.0 لملفات الصور (وفق ملف README للمشروع)، وليس خط Noto الملوّن نفسه فهو بترخيص OFL وغير مستخدم هنا.</p>
+  <p><b>شرح مبسط:</b> يُسمح بالاستخدام والتعديل والنشر، بما فيه التجاري، دون إلزامك بنشر مشروعك بالرخصة نفسها. الشروط: إرفاق نسخة من الرخصة، والإبقاء على إشعارات الحقوق، وذكر أي تعديل على الرموز (هنا: تغيير الحجم والتدوير، والتحويل إلى تدرج رمادي في وضع الطباعة). الرخصة لا تمنح حق استخدام العلامات التجارية، والرموز مقدَّمة «كما هي» دون ضمان. هذا ملخص عام وليس استشارة قانونية.</p>
+  <p><b>الخطوط العربية المضمّنة:</b> Amiri (© The Amiri Project Authors) · Scheherazade New (© SIL Global، الاسم المحجوز «Scheherazade» و«SIL») · Noto Naskh Arabic (© The Noto Project Authors) · Markazi Text (© The Markazi Text Project Authors). جميعها بترخيص <b>SIL Open Font License 1.1</b>: يُسمح باستخدامها وتضمينها وتوزيعها، بما فيه التجاري، مع الإبقاء على إشعارات الحقوق، ولا يجوز بيع الخط وحده. الملفات مأخوذة من حزم @fontsource. هذا ملخص عام وليس استشارة قانونية.</p>
+  <pre id="lictxt"></pre></div></div>
+
+
+<script src="APPS DESIGN.js"></script>
+</body>
+</html>
