@@ -178,6 +178,12 @@ function applyH(){stage.style.width=W+'px';stage.style.height=H+'px';wrap.style.
   const g=$('grip');g.style.left=PAD+'px';g.style.top=(PAD+H*S+8)+'px';g.style.width=(W*S)+'px';$('wcm').textContent=(W/37.795).toFixed(1)+' سم';$('hcm').textContent=(H/37.795).toFixed(1)+' سم';drawRulers();if(lastMousePoint)updateMouseCoords(lastMousePoint)}
 function fit(){stage.style.transform=`scale(${S})`;stage.style.left=stage.style.top=PAD+'px';stage.style.setProperty('--k',1/S);$('zp').textContent=Math.round(S*100)+'%';applyH()}
 function fitZoom(){S=Math.max(.15,Math.min(1.25,(vp.clientWidth-2*PAD)/W));zoomed=false;fit();vp.scrollLeft=0;vp.scrollTop=0;drawRulers();render()}
+const WELCOME_KEY='ws-welcome-dismissed-v1';
+function positionWelcome(){if($('welcome').classList.contains('hide'))return;$('welcome').style.left=vp.scrollLeft+'px';$('welcome').style.top=vp.scrollTop+'px';$('welcome').style.width=vp.clientWidth+'px';$('welcome').style.height=vp.clientHeight+'px'}
+function dismissWelcome(){const welcome=$('welcome');if(welcome.classList.contains('hide'))return;welcome.classList.add('hide');try{sessionStorage.setItem(WELCOME_KEY,'1')}catch(e){}}
+function initWelcome(){let dismissed=false;try{dismissed=sessionStorage.getItem(WELCOME_KEY)==='1'}catch(e){}if(items.length||dismissed)return;$('welcome').classList.remove('hide');positionWelcome();$('welcomeStart').focus()}
+$('welcomeStart').onclick=dismissWelcome;$('welcomeClose').onclick=dismissWelcome;
+addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('welcome').classList.contains('hide'))dismissWelcome()});
 function setOrientation(next){if(!A4[next]||next===pageOrientation)return;flush();const oldW=W;pageOrientation=next;W=A4[next].w;H=A4[next].h;const factor=oldW/W;
   items.forEach(o=>{o.x*=factor;o.y*=factor;o.s*=factor});$('orientation').value=next;lastSel=null;
   if(zoomed){fit();render()}else fitZoom();saveL();commitSoon()}
@@ -186,10 +192,10 @@ function updateMouseCoords(point){lastMousePoint=point;const cross=$('mouseCross
   const rect=stage.getBoundingClientRect(),x=(point.clientX-rect.left)/S,y=(point.clientY-rect.top)/S;if(x<0||x>W||y<0||y>H){cross.classList.add('hide');hm.classList.add('hide');vm.classList.add('hide');return}
   const vpRect=vp.getBoundingClientRect();cross.classList.remove('hide');hm.classList.remove('hide');vm.classList.remove('hide');$('mouseV').style.left=x+'px';$('mouseH').style.top=y+'px';hm.style.left=(point.clientX-vpRect.left-vp.clientLeft)+'px';vm.style.top=(point.clientY-vpRect.top-vp.clientTop)+'px'}
  $('orientation').onchange=e=>setOrientation(e.target.value);$('mouseCoords').onchange=()=>updateMouseCoords(lastMousePoint);
-vp.addEventListener('pointermove',e=>updateMouseCoords(e));vp.addEventListener('pointerleave',()=>updateMouseCoords(null));vp.addEventListener('scroll',()=>{drawRulers();if(lastMousePoint)updateMouseCoords(lastMousePoint)});
+vp.addEventListener('pointermove',e=>updateMouseCoords(e));vp.addEventListener('pointerleave',()=>updateMouseCoords(null));vp.addEventListener('scroll',()=>{drawRulers();positionWelcome();if(lastMousePoint)updateMouseCoords(lastMousePoint)});
 function zoomAt(f,cx,cy){const r=stage.getBoundingClientRect(),px=(cx-r.left)/S,py=(cy-r.top)/S;S=Math.max(.15,Math.min(4,S*f));zoomed=true;fit();
   const r2=stage.getBoundingClientRect();vp.scrollLeft+=r2.left+px*S-cx;vp.scrollTop+=r2.top+py*S-cy;drawRulers();render()}
-addEventListener('resize',()=>{if(!zoomed)fitZoom();else drawRulers()});
+addEventListener('resize',()=>{if(!zoomed)fitZoom();else drawRulers();positionWelcome()});
 
 /* ---------- Modes ---------- */
 function mode(on){
@@ -232,11 +238,11 @@ async function flatten(){if(document.fonts&&document.fonts.ready)await document.
 const ALLB=['rspl','rmat','rrep','rsize','rlook','ralign','rcopy','rshape','up','dn','top','bot','dup','dupl','dupr','dupu','dupd','dupul','dupur','dupdl','dupdr','del','al','ar','at','ab','ach','acv'];
 /* ---------- Overlay items: stored RELATIVE to the exercise (x,y = centre as 0-1 fractions, s = width/W, a = height/width) ---------- */
 const P=o=>{if(o.type==='text')fitText(o);return{cx:o.x*W,cy:o.y*W,w:o.s*W,h:o.s*W*o.a}};
-function add(o){o.id=uid++;const n=items.length%6;o.x=.5+n*.025;o.y=.3+n*.03;o.r=0;items.push(o);setSel([o.id]);render()}
+function add(o){dismissWelcome();o.id=uid++;const n=items.length%6;o.x=.5+n*.025;o.y=.3+n*.03;o.r=0;items.push(o);setSel([o.id]);render()}
 const addImg=(src,nw,nh,label,tw)=>add({img:imgId(src),label,s:tw/W,a:nh/nw});
 const KEY='ws-layer-v2';let tm;
 function saveL(){clearTimeout(tm);tm=setTimeout(()=>{try{localStorage.setItem(KEY,JSON.stringify({items,uid,H,orientation:pageOrientation,imgs:usedImgs()}))}catch(e){}},400)}
-function loadL(){try{const d=JSON.parse(localStorage.getItem(KEY)||'null');if(d&&Array.isArray(d.items)){pageOrientation=A4[d.orientation]?d.orientation:'portrait';W=A4[pageOrientation].w;H=Math.min(A4[pageOrientation].h,Math.max(200,Number.isFinite(d.H)?d.H:A4[pageOrientation].h));$('orientation').value=pageOrientation;items=d.items;uid=d.uid||items.length+1;if(d.imgs)for(const k in d.imgs){const v=d.imgs[k];if(typeof v==='string'&&v.startsWith('data:image/')){IMG[k]=v;IMGR.set(v,k);imgN=Math.max(imgN,+k.slice(1)||0)}}migrate()}}catch(e){}}
+function loadL(){try{const d=JSON.parse(localStorage.getItem(KEY)||'null');if(d&&Array.isArray(d.items)){pageOrientation=A4[d.orientation]?d.orientation:'portrait';W=A4[pageOrientation].w;H=Math.min(A4[pageOrientation].h,Math.max(200,Number.isFinite(d.H)?d.H:A4[pageOrientation].h));$('orientation').value=pageOrientation;items=d.items;uid=d.uid||items.length+1;if(d.imgs)for(const k in d.imgs){const v=d.imgs[k];if(typeof v==='string'&&(v.startsWith('data:image/')||isClipAssetUrl(v))){IMG[k]=v;IMGR.set(v,k);imgN=Math.max(imgN,+k.slice(1)||0)}}migrate()}}catch(e){}}
 const hm=t=>t.classList.contains('r')?'rot':t.classList.contains('s')?'size':t.classList.contains('e')?'e':t.classList.contains('w')?'w':t.classList.contains('b')?'b':t.classList.contains('n')?'n':'move';
 function render(){
   if(!SS.size)pinned=false;
@@ -359,7 +365,7 @@ $('file').onchange=e=>{
 };
 
 /* ---------- Export: exercise + overlay, same proportions as the exercise ---------- */
-const load=src=>new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src=src});
+const load=src=>new Promise(r=>{const i=new Image();if(isClipAssetUrl(src))i.crossOrigin='anonymous';i.onload=()=>r(i);i.onerror=()=>r(null);i.src=src});
 $('exp').onclick=async()=>{if(document.fonts&&document.fonts.ready)await document.fonts.ready;
   const k=Math.min(300/96,Math.sqrt(16e6/(W*H))),c=document.createElement('canvas');c.width=Math.round(W*k);c.height=Math.round(H*k);
   const x=c.getContext('2d');x.scale(c.width/W,c.height/H);x.imageSmoothingQuality='high';x.fillStyle='#fff';x.fillRect(0,0,W,H);
@@ -483,6 +489,63 @@ drawRec();
 $('lictxt').textContent=LICTXT;
 ['licb','licf'].forEach(id=>$(id).onclick=e=>{e.preventDefault();$('lic').classList.remove('hide')});
 $('licx').onclick=()=>$('lic').classList.add('hide');$('lic').onclick=e=>{if(e.target===$('lic'))$('lic').classList.add('hide')};
+const CLIP_BASE='https://openclipart.org',CLIP_DB='a4-clipart-cache-v1',CLIP_LOCAL_KEY='ws-clipart-cache-v1',CLIP_CATS={school:{label:'المدرسة',query:'school'},home:{label:'البيت',query:'house'},food:{label:'الطعام',query:'food'},nature:{label:'الطبيعة',query:'nature'},tools:{label:'الأدوات',query:'tools'}};
+function isClipAssetUrl(src){try{const url=new URL(src);return url.protocol==='https:'&&url.hostname==='openclipart.org'&&/^\/image\/800px\/\d+\/?$/.test(url.pathname)}catch(e){return false}}
+let clipDbPromise=null,clipMode='category',clipQuery=CLIP_CATS.school.query,clipPage=1,clipVisible=0,clipHasMore=false,clipRequest=0,clipResults=[],clipSaved=new Map(),clipSavedLoaded=false;
+function openClipDB(){if(clipDbPromise)return clipDbPromise;let pending;pending=new Promise((resolve,reject)=>{if(!indexedDB){reject(new Error('IndexedDB غير متاح'));return}let settled=false;const finish=(error,db)=>{if(settled)return;settled=true;clearTimeout(timer);if(error){if(clipDbPromise===pending)clipDbPromise=null;reject(error)}else{db.onversionchange=()=>db.close();resolve(db)}};
+  const timer=setTimeout(()=>finish(new Error('انتهت مهلة فتح التخزين المحلي')),2500);let request;try{request=indexedDB.open(CLIP_DB,1)}catch(e){finish(e);return}
+  request.onupgradeneeded=()=>request.result.createObjectStore('clips',{keyPath:'id'});request.onsuccess=()=>{if(settled){request.result.close();return}finish(null,request.result)};request.onerror=()=>finish(request.error||new Error('تعذّر فتح التخزين المحلي'));request.onblocked=()=>finish(new Error('التخزين المحلي محجوب'))});clipDbPromise=pending;return pending}
+async function clipStore(mode,action,value){const db=await openClipDB();return new Promise((resolve,reject)=>{const tx=db.transaction('clips',mode),store=tx.objectStore('clips'),request=action==='all'?store.getAll():action==='delete'?store.delete(value):store.put(value);
+  if(action==='all'){request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error)}else{tx.oncomplete=()=>resolve(true);tx.onerror=()=>reject(tx.error)}})}
+function readLocalClipCache(){try{return JSON.parse(localStorage.getItem(CLIP_LOCAL_KEY)||'{}')}catch(e){return{}}}
+async function allSavedClips(){let clips=[];try{clips=await clipStore('readonly','all')}catch(e){}const merged=new Map(clips.map(item=>[item.id,item]));Object.values(readLocalClipCache()).forEach(item=>merged.set(item.id,item));return[...merged.values()]}
+async function persistSavedClip(item){try{await clipStore('readwrite','put',item);return'indexedDB'}catch(e){try{const cache=readLocalClipCache();cache[item.id]=item;localStorage.setItem(CLIP_LOCAL_KEY,JSON.stringify(cache));return'localStorage'}catch(storageError){return null}}}
+async function removeSavedClip(itemId){try{await clipStore('readwrite','delete',itemId)}catch(e){}try{const cache=readLocalClipCache();delete cache[itemId];localStorage.setItem(CLIP_LOCAL_KEY,JSON.stringify(cache))}catch(e){}}
+function setClipStatus(text){$('clipStatus').textContent=text}
+function parseClipResults(html){const doc=new DOMParser().parseFromString(html,'text/html'),seen=new Set();return [...doc.querySelectorAll('.artwork a[href^="/detail/"]')].flatMap(a=>{const im=a.querySelector('img'),detail=a.getAttribute('href'),m=detail&&detail.match(/^\/detail\/(\d+)\//),src=im&&im.getAttribute('src');if(!m||!src||seen.has(m[1]))return[];seen.add(m[1]);return[{id:'openclipart-'+m[1],title:im.alt||decodeURIComponent(detail.split('/').pop()).replace(/-/g,' '),preview:src.startsWith('http')?src:CLIP_BASE+src,detail:CLIP_BASE+detail}]})}
+function drawClipResults(){const grid=$('clipResults');grid.replaceChildren();const shown=clipResults.slice(0,clipVisible);
+  if(!shown.length){const empty=document.createElement('div');empty.className='clip-empty';empty.textContent='لا توجد نتائج';grid.appendChild(empty)}
+  shown.forEach(item=>{const card=document.createElement('article');card.className='clip-item';const preview=document.createElement('div');preview.className='clip-preview';const image=document.createElement('img');image.src=item.dataUrl||item.preview;image.alt=item.title;image.loading='lazy';preview.appendChild(image);
+    const title=document.createElement('a');title.className='clip-title';title.textContent=item.title;title.href=item.detail||'#';title.target='_blank';title.rel='noopener noreferrer';
+    const actions=document.createElement('div');actions.className='clip-actions';const insert=document.createElement('button');insert.className='p';insert.textContent='إدراج';insert.onclick=()=>insertClip(item);
+    const extra=document.createElement('button');if(clipMode==='saved'){extra.textContent='إزالة';extra.title='حذف من المحفوظات';extra.onclick=async()=>{await removeSavedClip(item.id);clipSaved.delete(item.id);await showSavedClips()}}
+    else{extra.textContent=clipSaved.has(item.id)?'محفوظ':'حفظ محلي';extra.disabled=clipSaved.has(item.id);extra.onclick=()=>saveClipLocally(item)}
+    actions.append(insert,extra);card.append(preview,title,actions);grid.appendChild(card)});
+  const canReveal=clipMode!=='saved'&&(clipVisible<clipResults.length||clipHasMore);$('clipMore').classList.toggle('hide',!canReveal);if(canReveal&&clipVisible>=clipResults.length)$('clipMore').textContent='تحميل المزيد'}
+async function fetchClipPage(query,page,reset){const requestId=++clipRequest;if(reset){clipResults=[];clipVisible=0;clipPage=1;clipHasMore=false}clipMode='search';clipQuery=query;clipPage=page;setClipStatus('جارٍ البحث في Openclipart…');drawClipResults();
+  try{const url=CLIP_BASE+'/search/'+(query?'?query='+encodeURIComponent(query)+'&p='+page:'?p='+page),response=await fetch(url);if(!response.ok)throw new Error('HTTP '+response.status);const parsed=parseClipResults(await response.text());if(requestId!==clipRequest)return;
+    const known=new Set(clipResults.map(i=>i.id));clipResults.push(...parsed.filter(i=>!known.has(i.id)));clipHasMore=parsed.length>0;clipVisible=reset?Math.min(20,clipResults.length):Math.min(clipVisible+20,clipResults.length);setClipStatus(`${clipResults.length} نتيجة · Openclipart`);drawClipResults()
+  }catch(e){if(requestId!==clipRequest)return;clipHasMore=false;setClipStatus('تعذّر الاتصال بالمكتبة. تحقق من الإنترنت ثم أعد المحاولة.');drawClipResults()}}
+async function loadClipCategory(key){if(key==='saved'){showSavedClips();return}if(!clipSavedLoaded){clipSavedLoaded=true;allSavedClips().then(saved=>{saved.forEach(item=>clipSaved.set(item.id,item));if(clipMode==='search')drawClipResults()}).catch(()=>{})}
+  if(key==='all'){fetchClipPage($('clipSearchInput').value.trim(),1,true);return}const category=CLIP_CATS[key];if(!category)return;$('clipSearchInput').value='';fetchClipPage(category.query,1,true)}
+async function showSavedClips(){const requestId=++clipRequest;clipMode='saved';clipResults=[];clipVisible=0;clipHasMore=false;setClipStatus('جارٍ فتح المحفوظات…');
+  try{const saved=await allSavedClips();if(requestId!==clipRequest)return;clipSaved=new Map(saved.map(item=>[item.id,item]));clipSavedLoaded=true;clipResults=saved;clipVisible=saved.length;setClipStatus(`${saved.length} صورة محفوظة محلياً`);drawClipResults()}catch(e){setClipStatus('تعذّر فتح المحفوظات');drawClipResults()}}
+async function loadMoreClips(){if(clipVisible<clipResults.length){clipVisible=Math.min(clipVisible+20,clipResults.length);drawClipResults();return}if(clipMode!=='saved'&&clipHasMore)await fetchClipPage(clipQuery,clipPage+1,false)}
+function blobDataUrl(blob){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(reader.error);reader.readAsDataURL(blob)})}
+function imageDimensions(src){return new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve({width:image.naturalWidth,height:image.naturalHeight});image.onerror=()=>reject(new Error('تعذّر قراءة الصورة'));image.src=src})}
+async function fetchClipBlob(url){let lastError;for(let attempt=0;attempt<3;attempt++){const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),12000);
+    try{const response=await fetch(url,{signal:controller.signal,cache:'force-cache'});if(!response.ok)throw new Error('HTTP '+response.status);const blob=await response.blob();if(!blob.type.startsWith('image/'))throw new Error('صيغة الصورة غير مدعومة');if(!blob.size)throw new Error('الصورة فارغة');return blob}
+    catch(e){lastError=e;if(e instanceof TypeError)break;if(attempt<2){setClipStatus(`تعذّر الاتصال مؤقتاً، إعادة المحاولة ${attempt+1}/2…`);await new Promise(resolve=>setTimeout(resolve,500*(attempt+1)))}}
+    finally{clearTimeout(timeout)}}
+  if(lastError.name==='AbortError'||lastError.name==='TimeoutError')throw new Error('انتهت مهلة تنزيل الصورة. تحقق من الاتصال ثم أعد المحاولة');
+  if(lastError instanceof TypeError)throw new Error('تعذّر الاتصال بمصدر الصورة. تحقق من الإنترنت ثم أعد المحاولة');throw lastError}
+function imageFallbackBlob(url){return new Promise((resolve,reject)=>{const image=new Image();image.crossOrigin='anonymous';image.referrerPolicy='no-referrer';image.onload=()=>{const canvas=document.createElement('canvas');canvas.width=image.naturalWidth;canvas.height=image.naturalHeight;canvas.getContext('2d').drawImage(image,0,0);canvas.toBlob(blob=>blob?resolve({blob,width:canvas.width,height:canvas.height}):reject(new Error('تعذّر تحويل الصورة')), 'image/png')};image.onerror=()=>reject(new Error('تعذّر تحميل الصورة من المصدر'));image.src=url})}
+async function downloadClip(item){if(item.dataUrl)return{dataUrl:item.dataUrl,width:item.width,height:item.height};let blob,width,height;
+  try{blob=await fetchClipBlob(item.preview)}catch(fetchError){try{const fallback=await imageFallbackBlob(item.preview);blob=fallback.blob;width=fallback.width;height=fallback.height}catch(e){if(!isClipAssetUrl(item.preview))throw fetchError;const size=await imageDimensions(item.preview).catch(()=>({width:300,height:300}));return{remoteUrl:item.preview,...size}}}
+  const dataUrl=await blobDataUrl(blob),size=width&&height?{width,height}:await imageDimensions(dataUrl);return{dataUrl,...size}}
+async function saveClipLocally(item){setClipStatus('جارٍ تنزيل الصورة وحفظها محلياً…');try{const asset=await downloadClip(item),saved={...item,...asset,savedAt:Date.now(),license:'Public Domain'},storage=await persistSavedClip(saved);if(!storage)throw new Error('مساحة التخزين المحلي غير متاحة');clipSaved.set(item.id,saved);clipSavedLoaded=true;setClipStatus(`حُفظت «${item.title}» محلياً${storage==='localStorage'?' (تخزين بديل)':''}`);drawClipResults()}catch(e){setClipStatus('تعذّر حفظ الصورة: '+e.message)}}
+async function insertClip(item){setClipStatus('جارٍ تجهيز الصورة…');try{let saved=clipSaved.get(item.id);if(!saved){const asset=await downloadClip(item);saved={...item,...asset,savedAt:Date.now(),license:'Public Domain'};clipSaved.set(item.id,saved);clipSavedLoaded=true;
+  persistSavedClip(saved).then(storage=>{if(!storage)toast('أُدرجت الصورة، لكن تعذّر حفظها محلياً',1);else if(storage==='localStorage')setClipStatus('حُفظت الصورة في التخزين البديل')}).catch(()=>toast('أُدرجت الصورة، وتعذّر تحديث المحفوظات',1))}
+    const width=saved.width||300,height=saved.height||300,displayWidth=Math.min(300,Math.max(100,width));$('clipGallery').classList.add('hide');
+    if(saved.remoteUrl||isClipAssetUrl(saved.src))add({src:saved.remoteUrl||saved.src,label:saved.title,s:displayWidth/W,a:height/width});else addImg(saved.dataUrl,width,height,saved.title,displayWidth)
+  }catch(e){setClipStatus('تعذّر تنزيل الصورة: '+e.message)}}
+function openImageSources(){$('imgSource').classList.remove('hide')}
+$('upl').onclick=openImageSources;$('imgSourceClose').onclick=()=>$('imgSource').classList.add('hide');$('imgSource').onclick=e=>{if(e.target===$('imgSource'))$('imgSource').classList.add('hide')};
+$('chooseDisk').onclick=()=>{$('imgSource').classList.add('hide');$('file').click()};$('chooseClipart').onclick=async()=>{$('imgSource').classList.add('hide');$('clipGallery').classList.remove('hide');await loadClipCategory('school')};
+$('clipClose').onclick=()=>$('clipGallery').classList.add('hide');$('clipGallery').onclick=e=>{if(e.target===$('clipGallery'))$('clipGallery').classList.add('hide')};
+$('clipTabs').onclick=e=>{const button=e.target.closest('[data-clip-cat]');if(!button)return;document.querySelectorAll('#clipTabs button').forEach(tab=>tab.classList.toggle('on',tab===button));loadClipCategory(button.dataset.clipCat)};
+$('clipSearchForm').onsubmit=e=>{e.preventDefault();document.querySelectorAll('#clipTabs button').forEach(tab=>tab.classList.toggle('on',tab.dataset.clipCat==='all'));fetchClipPage($('clipSearchInput').value.trim(),1,true)};
+$('clipMore').onclick=loadMoreClips;
 /* ---------- Grid snap (top-left corner of the element) + arrow-key nudging ---------- */
 let snapOn=false;
 const snapO=o=>{const p=P(o),g=+$('sg').value;o.x=(Math.round((p.cx-p.w/2)/g)*g+p.w/2)/W;o.y=(Math.round((p.cy-p.h/2)/g)*g+p.h/2)/W};
@@ -552,13 +615,13 @@ function cancelPageAction(){pendingPageAction=null;$('pageConfirm').classList.ad
 function saveProject(){const b=new Blob([JSON.stringify({v:2,items,H,orientation:pageOrientation,imgs:usedImgs()})],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='design.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
 $('lclr').onclick=()=>requestPageAction('clear');$('lnew').onclick=()=>requestPageAction('new');
 $('confirmSave').onclick=()=>finishPageAction(true);$('confirmIgnore').onclick=()=>finishPageAction(false);$('confirmCancel').onclick=$('confirmCancelTop').onclick=cancelPageAction;
-$('pageConfirm').onclick=e=>{if(e.target===$('pageConfirm'))cancelPageAction()};$('sv').onclick=saveProject;
-const okItem=o=>o&&typeof o==='object'&&[o.x,o.y,o.s,o.a,o.r].every(Number.isFinite)&&o.s>0&&o.s<50&&o.a>0&&o.a<200&&(o.type==='emoji'?!!NOTO[o.cp]:o.type==='shape'?(o.kind==='ellipse'||o.kind==='line'||!!SH[o.kind]):o.type==='text'?typeof o.text==='string':(typeof o.src==='string'&&o.src.startsWith('data:image/'))||typeof o.img==='string');
+  $('pageConfirm').onclick=e=>{if(e.target===$('pageConfirm'))cancelPageAction()};$('sv').onclick=saveProject;$('prn').onclick=()=>window.print();
+const okItem=o=>o&&typeof o==='object'&&[o.x,o.y,o.s,o.a,o.r].every(Number.isFinite)&&o.s>0&&o.s<50&&o.a>0&&o.a<200&&(o.type==='emoji'?!!NOTO[o.cp]:o.type==='shape'?(o.kind==='ellipse'||o.kind==='line'||!!SH[o.kind]):o.type==='text'?typeof o.text==='string':(typeof o.src==='string'&&(o.src.startsWith('data:image/')||isClipAssetUrl(o.src)))||typeof o.img==='string');
 $('openf').onchange=e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const fr=new FileReader();
   fr.onload=()=>{try{const d=JSON.parse(fr.result);if(!Array.isArray(d.items))throw 0;const map={};
-    if(d.imgs&&typeof d.imgs==='object')for(const k in d.imgs){const v=d.imgs[k];if(typeof v==='string'&&v.startsWith('data:image/'))map[k]=imgId(v)}
+    if(d.imgs&&typeof d.imgs==='object')for(const k in d.imgs){const v=d.imgs[k];if(typeof v==='string'&&(v.startsWith('data:image/')||isClipAssetUrl(v)))map[k]=imgId(v)}
     const ok=d.items.filter(okItem).map(o=>{const c={...o};if(c.img!==undefined){c.img=map[c.img];if(!c.img)return null}if(c.src){c.img=imgId(c.src);delete c.src}return c}).filter(Boolean);
-    items=ok.map((o,i)=>({...o,id:i+1,label:String(o.label||'')}));uid=items.length+1;if(A4[d.orientation]){pageOrientation=d.orientation;W=A4[pageOrientation].w;$('orientation').value=pageOrientation}H=Math.min(A4[pageOrientation].h,Math.max(200,Number.isFinite(d.H)?d.H:A4[pageOrientation].h));clearSel();applyH();render();toast(`تم فتح الملف (${items.length} عنصر)`)}catch(x){toast('ملف غير صالح',1)}};fr.readAsText(f)};
+    items=ok.map((o,i)=>({...o,id:i+1,label:String(o.label||'')}));uid=items.length+1;dismissWelcome();if(A4[d.orientation]){pageOrientation=d.orientation;W=A4[pageOrientation].w;$('orientation').value=pageOrientation}H=Math.min(A4[pageOrientation].h,Math.max(200,Number.isFinite(d.H)?d.H:A4[pageOrientation].h));clearSel();applyH();render();toast(`تم فتح الملف (${items.length} عنصر)`)}catch(x){toast('ملف غير صالح',1)}};fr.readAsText(f)};
 /* ---------- zoom (wheel / pinch) and pan (drag background) ---------- */
 const ptrs=new Map();let pan=null,pd=0;
 vp.addEventListener('wheel',e=>{e.preventDefault();zoomAt(Math.exp(-e.deltaY*(e.deltaMode?.05:.0015)),e.clientX,e.clientY)},{passive:false});
@@ -675,4 +738,4 @@ function stepper(id){const el=$(id),w=document.createElement('span');w.className
 ['mn1','mn2','mt','mgh','mgv','sn1','sn2','spg'].forEach(stepper);
 dualize('xw',{min:0,max:20,hmax:60});dualize('pam',{min:1,max:30,hmax:100});dualize('play',{min:1,max:4});dualize('xam',{min:1,max:30,hmax:100});dualize('xlay',{min:1,max:4});dualize('xr',{min:0,max:100,hmax:500});
 document.querySelectorAll('#sub .sext').forEach(ext=>{const a=[...ext.querySelectorAll('.dual input')].find(i=>!i.id.endsWith('_t'));if(!a)return;const z=document.createElement('button');z.type='button';z.className='zm';z.dataset.id=a.id;z.title='شريط دقة عالية';z.textContent='🔍';ext.appendChild(z)});
-loadL();fitZoom();mode(true);clearTimeout(ct);ct=0;curSnap=snapStr();histUI();
+loadL();fitZoom();mode(true);clearTimeout(ct);ct=0;curSnap=snapStr();histUI();initWelcome();

@@ -13,23 +13,24 @@
   <div class="bar" id="row1">
     <button class="p hide" id="ins">✏️ تعديل</button><button class="p" id="back">👁 معاينة</button>
     <span class="sep"></span>
-    <button id="sv">💾 حفظ</button><label class="b">📂 فتح<input id="openf" type="file" accept="application/json,.json" hidden></label><button id="exp">⬇ تصدير PNG</button>
+    <button id="sv">💾 حفظ</button><label class="b">📂 فتح<input id="openf" type="file" accept="application/json,.json" hidden></label><button id="prn" title="فتح نافذة طباعة المتصفح">🖨 طباعة</button><button id="exp">⬇ تصدير PNG</button>
     <span class="sep"></span>
     <label class="b">A4 <select id="orientation"><option value="portrait">عمودي</option><option value="landscape">أفقي</option></select></label>
     <label class="b" title="إظهار موضع المؤشر على المسطرتين"><input type="checkbox" id="mouseCoords"> موضع المؤشر</label>
     <span class="sep"></span>
     <label>🧲 <input type="checkbox" id="sn"> شبكة <select id="sg"><option>1</option><option>2</option><option selected>5</option><option>10</option></select> px</label>
-    <button id="bwb">◐ طباعة</button><label id="bwl" class="hide">التباين <input type="range" id="bwt" min="80" max="200" value="120"></label>
+    <button id="bwb" title="معاينة بالأبيض والأسود">◐ أبيض وأسود</button><label id="bwl" class="hide">التباين <input type="range" id="bwt" min="80" max="200" value="120"></label>
     <span class="sep"></span>
     <button id="fsb" title="ملء الشاشة">⛶</button><button id="licb" title="ترخيص الرموز والخطوط">ℹ️</button><button id="hbtn" title="مساعدة">❔</button>
   </div>
   <div class="bar hide" id="pal">
-    <label class="b" id="upl">📁 صورة<input id="file" type="file" accept="image/*" multiple hidden></label>
+    <button class="b" id="upl">📁 صورة ▾</button>
     <button id="shb" title="إدراج شكل">🔷 الأشكال ▾</button>
     <button id="libb">🎨 الرموز ▾</button>
     <span class="sep"></span><span id="rec" class="recs hide"></span>
   </div>
 </div>
+<input id="file" type="file" accept="image/*" multiple hidden>
 <div id="shl" class="hide"></div>
 <div id="hlp" class="hide"><small id="hint"></small><br><a href="#" id="licf">حقوق وترخيص الرموز والخطوط</a></div>
 <div class="bar hide" id="lib"><div class="fh"><b id="libt">إدراج رمز</b><button id="libx">✕ إغلاق</button></div></div>
@@ -50,7 +51,19 @@
   </aside>
   <div id="vp"><div id="rulerDock"><canvas id="hruler" aria-label="المسطرة الأفقية"></canvas><canvas id="vruler" aria-label="المسطرة العمودية"></canvas><div id="rulerCorner"></div><div id="hMarker" class="hide"></div><div id="vMarker" class="hide"></div></div>
     <div id="wrap"><div id="stage" class="view"><div id="ws"></div><div id="ov"></div><div id="mouseCross" class="hide"><div id="mouseV"></div><div id="mouseH"></div></div></div>
-    <div id="grip">⇕ اسحب لتغيير الارتفاع ضمن A4 — العرض <b id="wcm"></b>، الارتفاع <b id="hcm"></b></div></div></div>
+    <div id="grip">⇕ اسحب لتغيير الارتفاع ضمن A4 — العرض <b id="wcm"></b>، الارتفاع <b id="hcm"></b></div></div>
+    <div id="welcome" class="hide" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
+      <section class="welcome-panel">
+        <button id="welcomeClose" class="welcome-close" title="إغلاق" aria-label="إغلاق">×</button>
+        <div class="welcome-art" aria-hidden="true"><span>A4</span><i></i><i></i><i></i><b></b></div>
+        <p class="welcome-kicker">مساحة تصميم A4</p>
+        <h1 id="welcomeTitle">أهلاً بك في مساحة الإبداع</h1>
+        <p class="welcome-copy">حوّل أفكارك إلى تصاميم مرتبة، وابدأ صفحة جديدة بطريقتك.</p>
+        <div class="welcome-actions"><button id="welcomeStart" class="p">ابدأ التصميم</button><a href="https://www.facebook.com/profile.php?id=61594595552781&amp;sk=about&amp;locale=ar_AR" target="_blank" rel="noopener noreferrer">تابعني على فيسبوك <span aria-hidden="true">↗</span></a></div>
+        <div class="welcome-sign">الأستاذ عرافي بهلول</div>
+      </section>
+    </div>
+  </div>
   <aside id="lr" class="rail hide">
     <button id="ltog" class="rb" title="قائمة الصفحة"><b>☰</b></button>
     <button id="llay" class="rb" title="الطبقات والترتيب"><b>🗂</b><small>الطبقات</small></button>
@@ -155,6 +168,18 @@
   <div class="grp"><b id="gt"></b><button id="gx">✕ إغلاق</button></div>
   <div class="grp"><input id="gs" type="search" placeholder="🔍 بحث بالاسم..."><span id="gc" class="grp"></span></div>
   <div class="gr" id="gg"></div></div></div>
+<div id="imgSource" class="modal hide"><div class="sheet image-source-sheet">
+  <div class="fh"><b>إضافة صورة</b><button id="imgSourceClose" title="إغلاق">✕</button></div>
+  <div class="image-source-options"><button id="chooseClipart"><span aria-hidden="true">▧</span><b>المعرض</b><small>تصفّح Clipart</small></button><button id="chooseDisk"><span aria-hidden="true">↥</span><b>فتح من القرص</b><small>اختيار صورة من جهازك</small></button></div>
+</div></div>
+<div id="clipGallery" class="modal hide"><div class="sheet clip-sheet">
+  <div class="fh"><b>مكتبة Clipart</b><button id="clipClose" title="إغلاق">✕</button></div>
+  <div class="clip-tools"><div id="clipTabs" class="clip-tabs" role="tablist">
+    <button class="on" data-clip-cat="school">المدرسة</button><button data-clip-cat="home">البيت</button><button data-clip-cat="food">الطعام</button><button data-clip-cat="nature">الطبيعة</button><button data-clip-cat="tools">الأدوات</button><button data-clip-cat="all">كل المكتبة</button><button data-clip-cat="saved">المحفوظة</button>
+  </div><form id="clipSearchForm" class="clip-search"><input id="clipSearchInput" type="search" placeholder="ابحث في المكتبة الكلية"><button class="p" type="submit">بحث</button></form></div>
+  <div class="clip-meta"><small id="clipStatus" role="status">رسومات Openclipart مجانية للاستخدام</small><button id="clipMore" class="hide">تحميل المزيد</button></div>
+  <div id="clipResults" class="clip-grid"></div>
+</div></div>
 <div id="lic" class="modal hide"><div class="sheet">
   <div class="grp"><b>حقوق وترخيص الرموز</b><button id="licx">✕ إغلاق</button></div>
   <p><b>المكتبة:</b> Noto Emoji من Google (رسوم SVG متجهة)، النسخة المستخدمة v2.042.<br><b>المستودع:</b> <a href="https://github.com/googlefonts/noto-emoji" target="_blank" rel="noopener">github.com/googlefonts/noto-emoji</a><br><b>الرخصة:</b> Apache License 2.0 لملفات الصور (وفق ملف README للمشروع)، وليس خط Noto الملوّن نفسه فهو بترخيص OFL وغير مستخدم هنا.</p>
