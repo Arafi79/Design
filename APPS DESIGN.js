@@ -470,6 +470,9 @@ async function toggleFS(){const req=fsEl.requestFullscreen||fsEl.webkitRequestFu
   catch(e){toast('تعذّر تفعيل ملء الشاشة في هذا المتصفح أو داخل هذه الصفحة.',1)}}
 $('fsb').onclick=toggleFS;
 ['fullscreenchange','webkitfullscreenchange'].forEach(t=>document.addEventListener(t,()=>{$('fsb').textContent=fsOn()?'⤡':'⛶';$('fsb').title=fsOn()?'الخروج من ملء الشاشة':'ملء الشاشة'}));
+$('phoneMode').onclick=()=>{const on=!document.body.classList.contains('phone-mode');document.body.classList.toggle('phone-mode',on);$('phoneMode').setAttribute('aria-pressed',String(on));fitZoom()};
+$('topToggle').onclick=()=>{document.body.classList.add('top-hidden');$('topToggle').setAttribute('aria-expanded','false');$('topReveal').classList.remove('hide')};
+$('topReveal').onclick=()=>{document.body.classList.remove('top-hidden');$('topToggle').setAttribute('aria-expanded','true');$('topReveal').classList.add('hide')};
 $('hbtn').onclick=()=>{const h=$('hlp');h.style.top=Math.max(60,$('topc').getBoundingClientRect().bottom+4)+'px';h.classList.toggle('hide')};
 $('licf').addEventListener('click',()=>$('hlp').classList.add('hide'));
 document.addEventListener('pointerdown',e=>{if(e.target.closest&&!$('hlp').classList.contains('hide')&&!e.target.closest('#hlp,#hbtn'))$('hlp').classList.add('hide')},true);
